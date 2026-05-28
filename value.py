@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from salary import mlb_top20, nba_top20, nfl_top20
 
 # MLB stats:
 batting_stats = pd.read_csv('MLB_bstats_2025.csv')
@@ -54,36 +55,46 @@ plt.tight_layout()
 
 
 # NBA stats:
-nba_value = pd.read_csv('NBA_value_2025.csv')
+nba_league = pd.read_csv('NBA_BPM.csv')
 
-# Plot 1 - DPM by player colored by position
+# Handle traded players
+traded_players = nba_league[nba_league['Team'] == 'TOT']['Player'].tolist()
+nba_clean = nba_league[
+    ~((nba_league['Player'].isin(traded_players)) & (nba_league['Team'] != 'TOT'))
+]
+
+# Pull only top 20 paid players from full league table
+nba_top20_names = nba_top20['Name'].tolist()
+
+nba_value = nba_clean[nba_clean['Player'].isin(nba_top20_names)][['Player', 'Pos', 'G', 'MP', 'OBPM', 'DBPM', 'BPM', 'VORP', 'USG%']].rename(columns={'Player': 'Name', 'Pos': 'Position'})
+
+# Plot 1 - BPM by player colored by position
 plt.figure(figsize=(10, 6))
 
 sns.scatterplot(
     data=nba_value,
     x='Name',
-    y='DPM',
+    y='BPM',
     hue='Position',
     palette='tab10',
     s=100
 )
 
-plt.title('DPM by Position - NBA Top 20 Paid Players (2025)', fontsize=13)
+plt.title('BPM by Position - NBA Top 20 Paid Players (2025)', fontsize=13)
 plt.xlabel('')
-plt.ylabel('Daily Plus-Minus (DPM)')
+plt.ylabel('Box Plus/Minus (BPM)')
 plt.xticks(rotation=45, ha='right', fontsize=9)
 plt.axhline(y=0, color='red', linestyle='--', linewidth=0.8, alpha=0.7)
 plt.legend(title='Position', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
 
-
-# Plot 2 - DPM vs OB% colored by position
+# Plot 2 - BPM vs USG% colored by position
 plt.figure(figsize=(10, 6))
 
 sns.scatterplot(
     data=nba_value,
-    x='OB%',
-    y='DPM',
+    x='USG%',
+    y='BPM',
     hue='Position',
     palette='tab10',
     s=100
@@ -92,15 +103,15 @@ sns.scatterplot(
 for _, row in nba_value.iterrows():
     plt.annotate(
         row['Name'].split()[-1],
-        (row['OB%'], row['DPM']),
+        (row['USG%'], row['BPM']),
         textcoords='offset points',
         xytext=(5, 5),
         fontsize=8
     )
 
-plt.title('DPM vs Usage Rate (OB%) - NBA Top 20 Paid Players (2025)', fontsize=13)
-plt.xlabel('On-Ball Percentage / Usage Rate (OB%)')
-plt.ylabel('Daily Plus-Minus (DPM)')
+plt.title('BPM vs Usage Rate (USG%) - NBA Top 20 Paid Players (2025)', fontsize=13)
+plt.xlabel('Usage Rate (USG%)')
+plt.ylabel('Box Plus/Minus (BPM)')
 plt.axhline(y=0, color='red', linestyle='--', linewidth=0.8, alpha=0.7)
 plt.legend(title='Position', bbox_to_anchor=(1.05, 1), loc='upper left')
 plt.tight_layout()
