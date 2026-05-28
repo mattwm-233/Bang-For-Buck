@@ -125,6 +125,3 @@ plt.tight_layout()
 
 if __name__ == "__main__":
     plt.show()
-    print(mlb_top20)
-    print(nba_top20)
-    print(nfl_top20)
