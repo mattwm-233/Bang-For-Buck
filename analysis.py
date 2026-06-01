@@ -93,3 +93,41 @@ plt.ylabel('Value Z-Score')
 plt.legend(title='League')
 plt.tight_layout()
 plt.show()
+
+# Efficiency plot vs Salary
+plt.figure(figsize=(10, 6))
+
+sns.scatterplot(
+    data=master,
+    x='Salary',
+    y='Efficiency',
+    hue='League',
+    palette={'MLB': '#1f77b4', 'NBA': '#ff7f0e', 'NFL': '#d62728'},
+    s=100
+)
+
+plt.axhline(y=0, color='black', linestyle='--', linewidth=0.8, alpha=0.7)
+plt.title('Salary Efficiency by League (2025)', fontsize=13)
+plt.xlabel('Salary ($)')
+plt.ylabel('Efficiency Score')
+plt.legend(title='League')
+
+# Format x-axis as millions
+ax = plt.gca()
+ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, p: f'${x/1e6:.0f}M'))
+
+plt.tight_layout()
+plt.show()
+
+nfl_subset = master[master['League'] == 'NFL'].copy()
+nfl_subset['Salary'] = pd.to_numeric(nfl_subset['Salary'], errors='coerce')
+nfl_subset['Efficiency'] = pd.to_numeric(nfl_subset['Efficiency'], errors='coerce')
+
+# Drop any NaN values that might have come from coerce
+nfl_subset = nfl_subset.dropna(subset=['Salary', 'Efficiency'])
+
+correlation, pvalue = stats.pearsonr(nfl_subset['Salary'], nfl_subset['Efficiency'])
+
+print(f'NFL Salary vs Efficiency Correlation: {correlation:.3f}')
+print(f'P-Value: {pvalue:.3f}')
+print(f'Significant: {pvalue < 0.05}')
